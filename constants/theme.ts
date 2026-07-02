@@ -1,41 +1,51 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Semantic color tokens for contexts that can't use NativeWind `className`
+ * (icon `color` props, React Navigation's theme, status bar, gradients, blur
+ * tint). These hex values are kept in sync with `tailwind.config.js`.
  */
-
 import { Platform } from 'react-native';
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    background: '#ffffff',
+    backgroundSoft: '#f4f5f7',
+    backgroundElevated: '#ffffff',
+    border: '#e4e6eb',
+    text: '#14171b',
+    textMuted: '#5b6472',
+    textFaint: '#8a919c',
+    tint: '#00b845',
+    icon: '#5b6472',
+    tabIconDefault: '#8a919c',
+    tabIconSelected: '#00b845',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    background: '#0e1013',
+    backgroundSoft: '#14171b',
+    backgroundElevated: '#1c2027',
+    border: '#262b33',
+    text: '#eef1f5',
+    textMuted: '#9aa3af',
+    textFaint: '#5b6472',
+    tint: '#00e054',
+    icon: '#9aa3af',
+    tabIconDefault: '#5b6472',
+    tabIconSelected: '#00e054',
   },
-};
+} as const;
+
+export const BrandColors = {
+  green: '#00e054',
+  greenDim: '#00b845',
+  orange: '#ff8000',
+  blue: '#40bcf4',
+} as const;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
@@ -50,4 +60,4 @@ export const Fonts = Platform.select({
     rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
-});
+})!;
