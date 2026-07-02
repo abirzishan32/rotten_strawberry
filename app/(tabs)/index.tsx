@@ -48,7 +48,7 @@ export default function HomeScreen() {
             <Text className="text-xs font-medium text-inkLight-muted dark:text-ink-muted">
               {getGreeting()}
             </Text>
-            <Text className="text-2xl font-extrabold text-inkLight dark:text-ink">CineLog</Text>
+            <Text className="text-2xl font-extrabold text-inkLight dark:text-ink">Rotten Strawberry</Text>
           </View>
           <Ionicons name="notifications-outline" size={22} color={colors.text} />
         </View>
