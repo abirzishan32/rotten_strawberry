@@ -44,7 +44,12 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
-    reactCompiler: true,
+    // Disabled: still experimental for React Native, and its automatic
+    // memoization mishandles ref chains that go through nested
+    // forwardRef + useImperativeHandle (e.g. the filter bottom sheet's
+    // SearchFilterSheet -> AppBottomSheet -> BottomSheetModal ref
+    // forwarding), which broke calling sheetRef.current.present().
+    reactCompiler: false,
   },
   extra: {
     // Loaded server-side from .env (TMDB_API_KEY) so the raw key never has

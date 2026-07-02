@@ -63,7 +63,7 @@ export default function SearchScreen() {
             />
           </View>
           <Pressable
-            onPress={() => filterSheetRef.current?.present()}
+            onPress={() => filterSheetRef.current?.present?.()}
             className={[
               'h-[46px] w-[46px] items-center justify-center rounded-sm border',
               hasFilters

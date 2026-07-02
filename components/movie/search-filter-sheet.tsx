@@ -1,13 +1,9 @@
-import {
-  BottomSheetFooter,
-  BottomSheetScrollView,
-  type BottomSheetFooterProps,
-} from '@gorhom/bottom-sheet';
-import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppBottomSheet, type AppBottomSheetRef } from '@/components/common/bottom-sheet';
+import { AppBottomSheet } from '@/components/common/bottom-sheet';
 import { Button } from '@/components/common/button';
 import { Chip } from '@/components/common/chip';
 import {
@@ -20,8 +16,6 @@ import {
 import { BROWSE_GENRES } from '@/constants/genres';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { DiscoverFilters } from '@/types';
-
-const FOOTER_HEIGHT = 84;
 
 export interface SearchFilterSheetHandle {
   present: () => void;
@@ -43,7 +37,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export const SearchFilterSheet = forwardRef<SearchFilterSheetHandle, SearchFilterSheetProps>(
   function SearchFilterSheet({ filters, onApply }, ref) {
-    const sheetRef = useRef<AppBottomSheetRef>(null);
+    const [isOpen, setIsOpen] = useState(false);
     const [draft, setDraft] = useState<DiscoverFilters>(filters);
     const snapPoints = useMemo(() => ['85%'], []);
     const insets = useSafeAreaInsets();
@@ -52,58 +46,53 @@ export const SearchFilterSheet = forwardRef<SearchFilterSheetHandle, SearchFilte
     useImperativeHandle(ref, () => ({
       present: () => {
         setDraft(filters);
-        sheetRef.current?.present();
+        setIsOpen(true);
       },
-      dismiss: () => sheetRef.current?.dismiss(),
+      dismiss: () => setIsOpen(false),
     }));
+
+    // Fires when the sheet finishes animating to a snap point (including
+    // -1 = closed, whether that came from our own state or a user gesture
+    // like swiping down or tapping the backdrop) — keeps `isOpen` in sync.
+    const handleSheetChange = useCallback((index: number) => {
+      setIsOpen(index >= 0);
+    }, []);
 
     const runtimeSelected = (min?: number, max?: number) =>
       draft.minRuntime === min && draft.maxRuntime === max;
 
-    const renderFooter = useCallback(
-      (footerProps: BottomSheetFooterProps) => (
-        <BottomSheetFooter {...footerProps} bottomInset={insets.bottom}>
-          <View
-            style={{ borderTopColor: colors.border, backgroundColor: colors.backgroundElevated }}
-            className="flex-row gap-3 border-t px-5 pb-3 pt-3">
-            <View className="flex-1">
-              <Button
-                label="Reset"
-                variant="secondary"
-                onPress={() => {
-                  setDraft({});
-                }}
-              />
-            </View>
-            <View className="flex-1">
-              <Button
-                label="Apply filters"
-                onPress={() => {
-                  onApply(draft);
-                  sheetRef.current?.dismiss();
-                }}
-              />
-            </View>
-          </View>
-        </BottomSheetFooter>
-      ),
-      [colors.backgroundElevated, colors.border, draft, insets.bottom, onApply]
-    );
+    const handleReset = () => setDraft({});
+
+    const handleApply = () => {
+      onApply(draft);
+      setIsOpen(false);
+    };
 
     return (
       <AppBottomSheet
-        ref={sheetRef}
+        index={isOpen ? 0 : -1}
         snapPoints={snapPoints}
         enableDynamicSizing={false}
-        index={0}
-        footerComponent={renderFooter}>
+        onChange={handleSheetChange}>
+        <View
+          style={{ borderBottomColor: colors.border }}
+          className="gap-3 border-b px-5 pb-4 pt-1">
+          <Text className="text-lg font-bold text-inkLight dark:text-ink">Filters</Text>
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <Button label="Reset" variant="secondary" size="sm" onPress={handleReset} />
+            </View>
+            <View className="flex-1">
+              <Button label="Apply filters" size="sm" onPress={handleApply} />
+            </View>
+          </View>
+        </View>
+
         <BottomSheetScrollView
           contentContainerStyle={{
             paddingHorizontal: 20,
-            paddingBottom: FOOTER_HEIGHT + insets.bottom + 16,
+            paddingBottom: insets.bottom + 24,
           }}>
-          <Text className="text-lg font-bold text-inkLight dark:text-ink">Filters</Text>
-
           <SectionTitle>Genre</SectionTitle>
           <View className="flex-row flex-wrap gap-2">
             <Chip

@@ -1,6 +1,5 @@
 import '../global.css';
 
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -36,30 +35,25 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <BottomSheetModalProvider>
-            <ThemeProvider value={isDark ? navigationDarkTheme : navigationLightTheme}>
-              <ErrorBoundary>
-                <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="movie/[id]" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="browse/[category]"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen name="browse/genre/[id]" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="add-log"
-                    options={{ presentation: 'modal', headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="settings"
-                    options={{ presentation: 'modal', headerShown: false }}
-                  />
-                </Stack>
-              </ErrorBoundary>
-              <StatusBar style={isDark ? 'light' : 'dark'} />
-            </ThemeProvider>
-          </BottomSheetModalProvider>
+          <ThemeProvider value={isDark ? navigationDarkTheme : navigationLightTheme}>
+            <ErrorBoundary>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="movie/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="browse/[category]" options={{ headerShown: false }} />
+                <Stack.Screen name="browse/genre/[id]" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="add-log"
+                  options={{ presentation: 'modal', headerShown: false }}
+                />
+                <Stack.Screen
+                  name="settings"
+                  options={{ presentation: 'modal', headerShown: false }}
+                />
+              </Stack>
+            </ErrorBoundary>
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+          </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
