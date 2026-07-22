@@ -15,15 +15,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState, ErrorView, LoadingSpinner } from '@/components/common';
 import { CastCard, GenreChip, MovieCarousel, RatingBadge } from '@/components/movie';
+import { ReviewCard } from '@/components/review';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import {
+  useIsFavorite,
+  useIsInWatchlist,
   useMovieCredits,
   useMovieDetails,
   useMovieRecommendations,
+  useMovieReviews,
   useMovieVideos,
   useSimilarMovies,
+  useToggleFavorite,
+  useToggleWatchlist,
 } from '@/hooks/queries';
-import { useFavoritesStore } from '@/store/favorites-store';
+import { useRequireAuth } from '@/hooks/use-require-auth';
+import type { TmdbMovieSummary } from '@/types';
 import { formatCurrency, formatDate, formatRating, formatRuntime, releaseYear } from '@/utils/format';
 import { backdropUrl, posterUrl } from '@/utils/image';
 
@@ -41,9 +48,13 @@ export default function MovieDetailsScreen() {
   const videos = useMovieVideos(movieId);
   const similar = useSimilarMovies(movieId);
   const recommendations = useMovieRecommendations(movieId);
+  const reviews = useMovieReviews(movieId);
 
-  const isFavorite = useFavoritesStore((s) => s.isFavorite(movieId));
-  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
+  const requireAuth = useRequireAuth();
+  const isFavorite = useIsFavorite(movieId);
+  const inWatchlist = useIsInWatchlist(movieId);
+  const toggleFavorite = useToggleFavorite();
+  const toggleWatchlist = useToggleWatchlist();
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -78,6 +89,34 @@ export default function MovieDetailsScreen() {
 
   const movie = details.data;
 
+  // The list/summary shape our favorites + watchlist store (built from details).
+  const movieSummary: TmdbMovieSummary = {
+    id: movie.id,
+    title: movie.title,
+    overview: movie.overview,
+    poster_path: movie.poster_path,
+    backdrop_path: movie.backdrop_path,
+    release_date: movie.release_date,
+    vote_average: movie.vote_average,
+    vote_count: movie.vote_count,
+    popularity: movie.popularity,
+    genre_ids: movie.genres.map((g) => g.id),
+    adult: movie.adult,
+    original_language: movie.original_language,
+  };
+
+  const onToggleFavorite = () => {
+    if (!requireAuth()) return;
+    toggleFavorite.mutate({ movie: movieSummary, isFavorite });
+  };
+
+  const onToggleWatchlist = () => {
+    if (!requireAuth()) return;
+    toggleWatchlist.mutate({ movie: movieSummary, inWatchlist });
+  };
+
+  const reviewList = reviews.data ?? [];
+
   return (
     <View className="flex-1 bg-white dark:bg-base">
       <Animated.View
@@ -102,26 +141,22 @@ export default function MovieDetailsScreen() {
           className="mx-3 flex-1 text-center text-base font-bold text-inkLight dark:text-ink">
           {movie.title}
         </Animated.Text>
-        <Pressable
-          onPress={() =>
-            toggleFavorite({
-              id: movie.id,
-              title: movie.title,
-              overview: movie.overview,
-              poster_path: movie.poster_path,
-              backdrop_path: movie.backdrop_path,
-              release_date: movie.release_date,
-              vote_average: movie.vote_average,
-              vote_count: movie.vote_count,
-              popularity: movie.popularity,
-              genre_ids: movie.genres.map((g) => g.id),
-              adult: movie.adult,
-              original_language: movie.original_language,
-            })
-          }
-          className="h-9 w-9 items-center justify-center rounded-full bg-black/40">
-          <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={19} color={isFavorite ? '#ff8000' : '#fff'} />
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={onToggleWatchlist}
+            className="h-9 w-9 items-center justify-center rounded-full bg-black/40">
+            <Ionicons
+              name={inWatchlist ? 'bookmark' : 'bookmark-outline'}
+              size={18}
+              color={inWatchlist ? '#00e054' : '#fff'}
+            />
+          </Pressable>
+          <Pressable
+            onPress={onToggleFavorite}
+            className="h-9 w-9 items-center justify-center rounded-full bg-black/40">
+            <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={19} color={isFavorite ? '#ff8000' : '#fff'} />
+          </Pressable>
+        </View>
       </View>
 
       <Animated.ScrollView
@@ -246,6 +281,23 @@ export default function MovieDetailsScreen() {
           </View>
         ) : null}
 
+        {reviewList.length > 0 ? (
+          <View className="gap-3 px-4 pt-8">
+            <Text className="text-base font-bold text-inkLight dark:text-ink">
+              Reviews ({reviewList.length})
+            </Text>
+            <View className="gap-3">
+              {reviewList.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  entry={review}
+                  authorName={review.author?.username ?? review.author?.displayName ?? undefined}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         <View className="pt-6">
           <MovieCarousel
             title="Similar movies"
@@ -268,7 +320,8 @@ export default function MovieDetailsScreen() {
       </Animated.ScrollView>
 
       <Pressable
-        onPress={() =>
+        onPress={() => {
+          if (!requireAuth()) return;
           router.push({
             pathname: '/add-log',
             params: {
@@ -276,8 +329,8 @@ export default function MovieDetailsScreen() {
               title: movie.title,
               poster: movie.poster_path ?? '',
             },
-          })
-        }
+          });
+        }}
         style={{ bottom: insets.bottom + 20 }}
         className="absolute right-5 h-14 w-14 items-center justify-center rounded-full bg-brand shadow-xl">
         <Ionicons name="create" size={24} color="#000" />

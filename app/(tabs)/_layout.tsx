@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, router } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
 
-import { AddLogTabButton } from '@/components/navigation/add-log-tab-button';
 import { TabBarBackground } from '@/components/navigation/tab-bar-background';
 import { HapticTab } from '@/components/haptic-tab';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -45,20 +44,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'search' : 'search-outline'} size={22} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="add-log"
-        options={{
-          title: '',
-          tabBarIcon: () => null,
-          tabBarButton: (props) => <AddLogTabButton {...props} />,
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            router.push('/add-log');
-          },
         }}
       />
       <Tabs.Screen

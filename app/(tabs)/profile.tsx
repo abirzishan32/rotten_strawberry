@@ -5,23 +5,27 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { EmptyState } from '@/components/common';
+import { Button, EmptyState } from '@/components/common';
 import { GenreChip, MovieCard } from '@/components/movie';
 import { ReviewCard } from '@/components/review';
-import { MOCK_PROFILE } from '@/constants/mock-profile';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { useFavoritesStore } from '@/store/favorites-store';
-import { useLogStore } from '@/store/log-store';
+import { useFavorites, useMyReviews, useProfile, useWatchlist } from '@/hooks/queries';
+import { useCurrentUser, useIsAuthenticated } from '@/store/auth-store';
 import { computeDiaryStats } from '@/utils/stats';
 import { posterUrl } from '@/utils/image';
 
-type ProfileTab = 'diary' | 'reviews' | 'favorites';
+type ProfileTab = 'diary' | 'reviews' | 'favorites' | 'watchlist';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
-  const entries = useLogStore((s) => s.entries);
-  const favorites = useFavoritesStore((s) => s.favorites);
+  const isAuthenticated = useIsAuthenticated();
+  const user = useCurrentUser();
+
+  const { data: profile } = useProfile();
+  const { data: entries = [] } = useMyReviews();
+  const { data: favorites = [] } = useFavorites();
+  const { data: watchlist = [] } = useWatchlist();
   const [tab, setTab] = useState<ProfileTab>('diary');
 
   const stats = useMemo(() => computeDiaryStats(entries), [entries]);
@@ -29,6 +33,13 @@ export default function ProfileScreen() {
     () => entries.filter((entry) => entry.reviewText.trim().length > 0),
     [entries]
   );
+
+  if (!isAuthenticated) {
+    return <SignedOut insetsTop={insets.top} />;
+  }
+
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Movie fan';
+  const username = profile?.username || user?.email?.split('@')[0] || 'you';
 
   return (
     <View className="flex-1 bg-white dark:bg-base">
@@ -47,31 +58,14 @@ export default function ProfileScreen() {
             <Ionicons name="person" size={40} color={colors.tint} />
           </View>
           <View className="items-center gap-0.5">
-            <Text className="text-lg font-bold text-inkLight dark:text-ink">
-              {MOCK_PROFILE.displayName}
-            </Text>
-            <Text className="text-sm text-inkLight-muted dark:text-ink-muted">
-              @{MOCK_PROFILE.username}
-            </Text>
+            <Text className="text-lg font-bold text-inkLight dark:text-ink">{displayName}</Text>
+            <Text className="text-sm text-inkLight-muted dark:text-ink-muted">@{username}</Text>
           </View>
-          <Text className="max-w-[280px] text-center text-sm text-inkLight-muted dark:text-ink-muted">
-            {MOCK_PROFILE.bio}
-          </Text>
-
-          <View className="flex-row gap-8 pt-2">
-            <View className="items-center">
-              <Text className="text-base font-bold text-inkLight dark:text-ink">
-                {MOCK_PROFILE.followers}
-              </Text>
-              <Text className="text-xs text-inkLight-muted dark:text-ink-muted">Followers</Text>
-            </View>
-            <View className="items-center">
-              <Text className="text-base font-bold text-inkLight dark:text-ink">
-                {MOCK_PROFILE.following}
-              </Text>
-              <Text className="text-xs text-inkLight-muted dark:text-ink-muted">Following</Text>
-            </View>
-          </View>
+          {profile?.bio ? (
+            <Text className="max-w-[280px] text-center text-sm text-inkLight-muted dark:text-ink-muted">
+              {profile.bio}
+            </Text>
+          ) : null}
         </View>
 
         <View className="mx-4 mt-6 flex-row rounded-md bg-surface-light-soft dark:bg-base-soft">
@@ -91,10 +85,11 @@ export default function ProfileScreen() {
           </View>
         ) : null}
 
-        <View className="flex-row gap-2 px-4 pb-4 pt-7">
+        <View className="flex-row flex-wrap gap-2 px-4 pb-4 pt-7">
           <TabButton label="Diary" active={tab === 'diary'} onPress={() => setTab('diary')} />
           <TabButton label="Reviews" active={tab === 'reviews'} onPress={() => setTab('reviews')} />
           <TabButton label="Favorites" active={tab === 'favorites'} onPress={() => setTab('favorites')} />
+          <TabButton label="Watchlist" active={tab === 'watchlist'} onPress={() => setTab('watchlist')} />
         </View>
 
         {tab === 'diary' ? (
@@ -150,16 +145,48 @@ export default function ProfileScreen() {
           )
         ) : null}
 
-        <View className="gap-2.5 px-4 pt-8">
-          <Text className="text-sm font-bold text-inkLight dark:text-ink">Lists</Text>
-          <View className="items-center gap-2 rounded-md bg-surface-light-soft py-8 dark:bg-base-soft">
-            <Ionicons name="albums-outline" size={22} color={colors.textFaint} />
-            <Text className="text-xs text-inkLight-muted dark:text-ink-muted">
-              No custom lists yet
-            </Text>
-          </View>
-        </View>
+        {tab === 'watchlist' ? (
+          watchlist.length === 0 ? (
+            <EmptyState
+              icon="bookmark-outline"
+              title="Your watchlist is empty"
+              message="Tap the bookmark on a movie to save it for later."
+            />
+          ) : (
+            <View className="flex-row flex-wrap gap-3 px-4">
+              {watchlist.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} width={100} />
+              ))}
+            </View>
+          )
+        ) : null}
       </ScrollView>
+    </View>
+  );
+}
+
+function SignedOut({ insetsTop }: { insetsTop: number }) {
+  const { colors } = useAppTheme();
+  return (
+    <View className="flex-1 bg-white dark:bg-base">
+      <View style={{ paddingTop: insetsTop + 12 }} className="flex-row items-center justify-between px-4 pb-2">
+        <Text className="text-2xl font-extrabold text-inkLight dark:text-ink">Profile</Text>
+        <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
+          <Ionicons name="settings-outline" size={22} color={colors.text} />
+        </Pressable>
+      </View>
+      <View className="flex-1 items-center justify-center gap-5 px-8">
+        <View className="h-20 w-20 items-center justify-center rounded-full bg-brand/15">
+          <Ionicons name="person-outline" size={36} color={colors.tint} />
+        </View>
+        <View className="items-center gap-1.5">
+          <Text className="text-lg font-bold text-inkLight dark:text-ink">Sign in to your account</Text>
+          <Text className="text-center text-sm text-inkLight-muted dark:text-ink-muted">
+            Log films, write reviews, and build your watchlist — synced to your account.
+          </Text>
+        </View>
+        <Button label="Sign in or create account" onPress={() => router.push('/auth')} />
+      </View>
     </View>
   );
 }
@@ -178,7 +205,7 @@ function TabButton({ label, active, onPress }: { label: string; active: boolean;
     <Pressable
       onPress={onPress}
       className={[
-        'flex-1 items-center rounded-sm border py-2.5',
+        'min-w-[72px] flex-1 items-center rounded-sm border py-2.5',
         active ? 'border-brand bg-brand/10' : 'border-surface-light-border dark:border-base-border',
       ].join(' ')}>
       <Text

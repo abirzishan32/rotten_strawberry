@@ -12,6 +12,7 @@ import 'react-native-reanimated';
 import { ErrorBoundary } from '@/components/common';
 import { BrandColors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useAuthInit } from '@/hooks/use-auth-init';
 import { queryClient } from '@/services/query-client';
 
 export const unstable_settings = {
@@ -30,6 +31,7 @@ const navigationDarkTheme = {
 
 export default function RootLayout() {
   const { isDark } = useAppTheme();
+  useAuthInit();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -48,6 +50,10 @@ export default function RootLayout() {
                 />
                 <Stack.Screen
                   name="settings"
+                  options={{ presentation: 'modal', headerShown: false }}
+                />
+                <Stack.Screen
+                  name="auth"
                   options={{ presentation: 'modal', headerShown: false }}
                 />
               </Stack>

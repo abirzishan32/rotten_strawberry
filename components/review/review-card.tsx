@@ -9,7 +9,7 @@ import type { MovieLogEntry } from '@/types';
 import { formatDate } from '@/utils/format';
 import { posterUrl } from '@/utils/image';
 
-export function ReviewCard({ entry }: { entry: MovieLogEntry }) {
+export function ReviewCard({ entry, authorName }: { entry: MovieLogEntry; authorName?: string }) {
   const { colors } = useAppTheme();
   const [revealed, setRevealed] = useState(!entry.containsSpoilers);
   const uri = posterUrl(entry.posterPath, 'w185');
@@ -32,6 +32,9 @@ export function ReviewCard({ entry }: { entry: MovieLogEntry }) {
             {formatDate(entry.watchedDate)}
           </Text>
         </View>
+        {authorName ? (
+          <Text className="text-[11px] font-medium text-brand-dim dark:text-brand">@{authorName}</Text>
+        ) : null}
         {entry.reviewText ? (
           revealed ? (
             <Text className="text-xs leading-4 text-inkLight-muted dark:text-ink-muted" numberOfLines={4}>

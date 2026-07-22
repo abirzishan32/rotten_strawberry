@@ -55,6 +55,10 @@ const config: ExpoConfig = {
     // Loaded server-side from .env (TMDB_API_KEY) so the raw key never has
     // to be prefixed with EXPO_PUBLIC_ / bundled as literal source text.
     tmdbApiKey: process.env.TMDB_API_KEY,
+    // Supabase project URL + anon key. The anon key is public-safe (guarded
+    // by Row Level Security); the service_role key is intentionally NOT here.
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
   },
 };
 

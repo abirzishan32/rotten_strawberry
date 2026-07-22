@@ -3,7 +3,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Input } from '@/components/common';
@@ -11,8 +11,8 @@ import { MovieCard } from '@/components/movie';
 import { StarRating } from '@/components/review';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { useMovieDetails, useSearchMovies } from '@/hooks/queries';
-import { useLogStore } from '@/store/log-store';
+import { useCreateReview, useMovieDetails, useSearchMovies } from '@/hooks/queries';
+import { getSupabaseErrorMessage } from '@/services/supabase';
 import type { PrivacyLevel } from '@/types';
 import { formatDate } from '@/utils/format';
 import { posterUrl } from '@/utils/image';
@@ -34,7 +34,7 @@ export default function AddLogScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const params = useLocalSearchParams<{ movieId?: string; title?: string; poster?: string }>();
-  const addEntry = useLogStore((s) => s.addEntry);
+  const createReview = useCreateReview();
 
   const prefilledMovieId = params.movieId ? Number(params.movieId) : undefined;
   const prefilledDetails = useMovieDetails(prefilledMovieId ?? NaN);
@@ -77,27 +77,30 @@ export default function AddLogScreen() {
     setTagInput('');
   };
 
-  const canSave = !!selectedMovie && rating > 0;
+  const canSave = !!selectedMovie && rating > 0 && !createReview.isPending;
 
   const handleSave = () => {
-    if (!selectedMovie) return;
-    addEntry({
-      id: `${selectedMovie.id}-${Date.now()}`,
-      movieId: selectedMovie.id,
-      movieTitle: selectedMovie.title,
-      posterPath: selectedMovie.posterPath,
-      genreIds: effectiveGenreIds,
-      rating,
-      reviewText,
-      watched,
-      watchedDate: watchedDate.toISOString(),
-      liked,
-      containsSpoilers,
-      tags,
-      privacy,
-      createdAt: new Date().toISOString(),
-    });
-    router.back();
+    if (!selectedMovie || createReview.isPending) return;
+    createReview.mutate(
+      {
+        movieId: selectedMovie.id,
+        movieTitle: selectedMovie.title,
+        posterPath: selectedMovie.posterPath,
+        genreIds: effectiveGenreIds,
+        rating,
+        reviewText,
+        watched,
+        watchedDate: watchedDate.toISOString(),
+        liked,
+        containsSpoilers,
+        tags,
+        privacy,
+      },
+      {
+        onSuccess: () => router.back(),
+        onError: (error) => Alert.alert("Couldn't save your log", getSupabaseErrorMessage(error)),
+      }
+    );
   };
 
   return (
@@ -302,7 +305,13 @@ export default function AddLogScreen() {
           </View>
         </View>
 
-        <Button label="Save log" onPress={handleSave} disabled={!canSave} fullWidth />
+        <Button
+          label="Save log"
+          onPress={handleSave}
+          disabled={!canSave}
+          loading={createReview.isPending}
+          fullWidth
+        />
       </ScrollView>
     </View>
   );
