@@ -6,6 +6,7 @@ export * as profilesApi from './profiles';
 export * as reviewsApi from './reviews';
 export * as favoritesApi from './favorites';
 export * as watchlistApi from './watchlist';
+export * as favoriteFilmsApi from './favorite-films';
 
 // Type-only re-exports so callers can name these without the namespace prefix.
 export type { ProfilePatch } from './profiles';

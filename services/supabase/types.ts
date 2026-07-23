@@ -15,6 +15,7 @@ export type ProfileRow = {
   username: string | null;
   display_name: string | null;
   bio: string | null;
+  location: string | null;
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
@@ -28,6 +29,9 @@ export type ReviewRow = {
   poster_path: string | null;
   genre_ids: number[];
   rating: number;
+  rating_ending: number;
+  rating_rewatchability: number;
+  rating_pacing: number;
   review_text: string;
   watched: boolean;
   watched_date: string | null;
@@ -46,14 +50,25 @@ export type MovieCacheRow = {
   created_at: string;
 };
 
+export type FavoriteFilmRow = {
+  id: string;
+  user_id: string;
+  movie_id: number;
+  movie: TmdbMovieSummary;
+  position: number;
+  created_at: string;
+};
+
 type ProfileInsert = { id: string; username?: string | null; display_name?: string | null };
-type ProfileUpdate = Partial<Pick<ProfileRow, 'username' | 'display_name' | 'bio' | 'avatar_url'>>;
+type ProfileUpdate = Partial<Pick<ProfileRow, 'username' | 'display_name' | 'bio' | 'location' | 'avatar_url'>>;
 
 type ReviewInsert = Omit<ReviewRow, 'id' | 'created_at'> & { id?: string; created_at?: string };
 export type ReviewUpdatePatch = Partial<Omit<ReviewRow, 'id' | 'user_id' | 'created_at'>>;
 type ReviewUpdate = ReviewUpdatePatch;
 
 type MovieCacheInsert = Omit<MovieCacheRow, 'id' | 'created_at'> & { id?: string; created_at?: string };
+type FavoriteFilmInsert = Omit<FavoriteFilmRow, 'id' | 'created_at'> & { id?: string; created_at?: string };
+type FavoriteFilmUpdate = Partial<FavoriteFilmInsert>;
 
 // Each table carries an empty `Relationships` tuple: postgrest-js's GenericTable
 // constraint requires the key, and without it the whole schema degrades to
@@ -65,6 +80,7 @@ export interface Database {
       reviews: { Row: ReviewRow; Insert: ReviewInsert; Update: ReviewUpdate; Relationships: [] };
       favorites: { Row: MovieCacheRow; Insert: MovieCacheInsert; Update: Partial<MovieCacheInsert>; Relationships: [] };
       watchlist: { Row: MovieCacheRow; Insert: MovieCacheInsert; Update: Partial<MovieCacheInsert>; Relationships: [] };
+      favorite_films: { Row: FavoriteFilmRow; Insert: FavoriteFilmInsert; Update: FavoriteFilmUpdate; Relationships: [] };
     };
     // `{ [_ in never]: never }` (not `Record<string, never>`): the latter adds a
     // `[key: string]: never` index signature that, when intersected as
@@ -98,6 +114,9 @@ export interface NewReviewInput {
   posterPath: string | null;
   genreIds: number[];
   rating: number;
+  ratingEnding: number;
+  ratingRewatchability: number;
+  ratingPacing: number;
   reviewText: string;
   watched: boolean;
   watchedDate: string;
@@ -115,6 +134,9 @@ export function reviewRowToLogEntry(row: ReviewRow): MovieLogEntry {
     posterPath: row.poster_path,
     genreIds: row.genre_ids ?? [],
     rating: Number(row.rating),
+    ratingEnding: Number(row.rating_ending ?? 0),
+    ratingRewatchability: Number(row.rating_rewatchability ?? 0),
+    ratingPacing: Number(row.rating_pacing ?? 0),
     reviewText: row.review_text ?? '',
     watched: row.watched,
     watchedDate: row.watched_date ?? row.created_at,
@@ -154,6 +176,9 @@ export function newReviewToInsert(input: NewReviewInput, userId: string): Databa
     poster_path: input.posterPath,
     genre_ids: input.genreIds,
     rating: input.rating,
+    rating_ending: input.ratingEnding,
+    rating_rewatchability: input.ratingRewatchability,
+    rating_pacing: input.ratingPacing,
     review_text: input.reviewText,
     watched: input.watched,
     watched_date: input.watchedDate,

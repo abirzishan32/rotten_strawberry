@@ -21,4 +21,5 @@ export const queryKeys = {
   recentReviews: () => ['reviews', 'recent'] as const,
   favorites: (userId: string) => ['favorites', userId] as const,
   watchlist: (userId: string) => ['watchlist', userId] as const,
+  favoriteFilms: (userId: string) => ['favorite-films', userId] as const,
 };

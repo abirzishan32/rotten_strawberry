@@ -13,7 +13,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCreateReview, useMovieDetails, useSearchMovies } from '@/hooks/queries';
 import { getSupabaseErrorMessage } from '@/services/supabase';
-import type { PrivacyLevel } from '@/types';
+import { REVIEW_METRICS, type PrivacyLevel, type ReviewMetricKey } from '@/types';
 import { formatDate } from '@/utils/format';
 import { posterUrl } from '@/utils/image';
 
@@ -55,7 +55,14 @@ export default function AddLogScreen() {
   const movieSearch = useSearchMovies(debouncedMovieQuery);
   const searchResults = movieSearch.data?.pages.flatMap((page) => page.results) ?? [];
 
-  const [rating, setRating] = useState(0);
+  const [metrics, setMetrics] = useState<Record<ReviewMetricKey, number>>({
+    rating: 0,
+    ratingEnding: 0,
+    ratingRewatchability: 0,
+    ratingPacing: 0,
+  });
+  const setMetric = (key: ReviewMetricKey, value: number) =>
+    setMetrics((prev) => ({ ...prev, [key]: value }));
   const [reviewText, setReviewText] = useState('');
   const [watched, setWatched] = useState(true);
   const [watchedDate, setWatchedDate] = useState(new Date());
@@ -77,7 +84,7 @@ export default function AddLogScreen() {
     setTagInput('');
   };
 
-  const canSave = !!selectedMovie && rating > 0 && !createReview.isPending;
+  const canSave = !!selectedMovie && metrics.rating > 0 && !createReview.isPending;
 
   const handleSave = () => {
     if (!selectedMovie || createReview.isPending) return;
@@ -87,7 +94,10 @@ export default function AddLogScreen() {
         movieTitle: selectedMovie.title,
         posterPath: selectedMovie.posterPath,
         genreIds: effectiveGenreIds,
-        rating,
+        rating: metrics.rating,
+        ratingEnding: metrics.ratingEnding,
+        ratingRewatchability: metrics.ratingRewatchability,
+        ratingPacing: metrics.ratingPacing,
         reviewText,
         watched,
         watchedDate: watchedDate.toISOString(),
@@ -154,8 +164,10 @@ export default function AddLogScreen() {
             {searchResults.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {searchResults.slice(0, 10).map((movie) => (
-                  <Pressable
+                  <MovieCard
                     key={movie.id}
+                    movie={movie}
+                    width={100}
                     onPress={() =>
                       setSelectedMovie({
                         id: movie.id,
@@ -163,20 +175,28 @@ export default function AddLogScreen() {
                         posterPath: movie.poster_path,
                         genreIds: movie.genre_ids,
                       })
-                    }>
-                    <MovieCard movie={movie} width={100} />
-                  </Pressable>
+                    }
+                  />
                 ))}
               </ScrollView>
             ) : null}
           </View>
         )}
 
-        <View className="items-center gap-2 py-2">
+        <View className="gap-3 rounded-md bg-surface-light-soft p-4 dark:bg-base-soft">
           <Text className="text-xs font-semibold uppercase tracking-wide text-inkLight-muted dark:text-ink-muted">
-            Your rating
+            Your ratings
           </Text>
-          <StarRating rating={rating} onChange={setRating} size={36} />
+          {REVIEW_METRICS.map((metric) => (
+            <View key={metric.key} className="flex-row items-center justify-between">
+              <Text className="text-sm font-medium text-inkLight dark:text-ink">{metric.label}</Text>
+              <StarRating
+                rating={metrics[metric.key]}
+                onChange={(value) => setMetric(metric.key, value)}
+                size={24}
+              />
+            </View>
+          ))}
         </View>
 
         <View className="gap-2">

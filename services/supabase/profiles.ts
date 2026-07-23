@@ -25,7 +25,9 @@ export async function getProfile(userId: string): Promise<ProfileRow | null> {
   return data;
 }
 
-export type ProfilePatch = Partial<Pick<ProfileRow, 'username' | 'display_name' | 'bio' | 'avatar_url'>>;
+export type ProfilePatch = Partial<
+  Pick<ProfileRow, 'username' | 'display_name' | 'bio' | 'location' | 'avatar_url'>
+>;
 
 export async function updateProfile(userId: string, patch: ProfilePatch): Promise<ProfileRow> {
   const { data, error } = await supabase

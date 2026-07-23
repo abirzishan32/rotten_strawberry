@@ -5,4 +5,5 @@ export * from './use-search-movies';
 export * from './use-reviews';
 export * from './use-favorites';
 export * from './use-watchlist';
+export * from './use-favorite-films';
 export * from './use-profile';

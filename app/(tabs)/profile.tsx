@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -7,12 +6,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, EmptyState } from '@/components/common';
 import { GenreChip, MovieCard } from '@/components/movie';
+import { DiaryList, FavoriteFilmsRow } from '@/components/profile';
 import { ReviewCard } from '@/components/review';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { useFavorites, useMyReviews, useProfile, useWatchlist } from '@/hooks/queries';
+import {
+  useFavoriteFilms,
+  useFavorites,
+  useMyReviews,
+  useProfile,
+  useRemoveFavoriteFilm,
+  useReorderFavoriteFilms,
+  useWatchlist,
+} from '@/hooks/queries';
 import { useCurrentUser, useIsAuthenticated } from '@/store/auth-store';
 import { computeDiaryStats } from '@/utils/stats';
-import { posterUrl } from '@/utils/image';
 
 type ProfileTab = 'diary' | 'reviews' | 'favorites' | 'watchlist';
 
@@ -26,6 +33,9 @@ export default function ProfileScreen() {
   const { data: entries = [] } = useMyReviews();
   const { data: favorites = [] } = useFavorites();
   const { data: watchlist = [] } = useWatchlist();
+  const { data: favoriteFilms = [] } = useFavoriteFilms();
+  const reorderFavoriteFilms = useReorderFavoriteFilms();
+  const removeFavoriteFilm = useRemoveFavoriteFilm();
   const [tab, setTab] = useState<ProfileTab>('diary');
 
   const stats = useMemo(() => computeDiaryStats(entries), [entries]);
@@ -61,14 +71,44 @@ export default function ProfileScreen() {
             <Text className="text-lg font-bold text-inkLight dark:text-ink">{displayName}</Text>
             <Text className="text-sm text-inkLight-muted dark:text-ink-muted">@{username}</Text>
           </View>
+          {profile?.location ? (
+            <View className="flex-row items-center gap-1">
+              <Ionicons name="location-outline" size={13} color={colors.textMuted} />
+              <Text className="text-xs text-inkLight-muted dark:text-ink-muted">{profile.location}</Text>
+            </View>
+          ) : null}
           {profile?.bio ? (
-            <Text className="max-w-[280px] text-center text-sm text-inkLight-muted dark:text-ink-muted">
+            <Text className="max-w-[300px] text-center text-sm text-inkLight-muted dark:text-ink-muted">
               {profile.bio}
             </Text>
           ) : null}
+          <Button
+            label="Edit profile"
+            variant="outline"
+            size="sm"
+            onPress={() => router.push('/edit-profile')}
+          />
         </View>
 
-        <View className="mx-4 mt-6 flex-row rounded-md bg-surface-light-soft dark:bg-base-soft">
+        {/* Favourite films showcase (max 4, drag to reorder) */}
+        <View className="gap-2.5 px-4 pt-7">
+          <Text className="text-sm font-bold text-inkLight dark:text-ink">Favourite films</Text>
+          {favoriteFilms.length === 0 ? (
+            <Text className="text-xs text-inkLight-muted dark:text-ink-muted">
+              Add up to 4 favourites and long-press to drag them into order.
+            </Text>
+          ) : null}
+          <FavoriteFilmsRow
+            films={favoriteFilms}
+            editable
+            onReorder={(movies) => reorderFavoriteFilms.mutate(movies)}
+            onRemove={(movieId) => removeFavoriteFilm.mutate(movieId)}
+            onAddPress={() => router.push('/pick-favorite-film')}
+            onPressFilm={(movieId) => router.push(`/movie/${movieId}`)}
+          />
+        </View>
+
+        <View className="mx-4 mt-7 flex-row rounded-md bg-surface-light-soft dark:bg-base-soft">
           <StatCell label="Watched" value={String(stats.totalWatched)} />
           <StatCell label="Reviews" value={String(stats.totalReviews)} />
           <StatCell label="Avg rating" value={stats.averageRating ? stats.averageRating.toFixed(1) : '—'} />
@@ -95,29 +135,12 @@ export default function ProfileScreen() {
         {tab === 'diary' ? (
           entries.length === 0 ? (
             <EmptyState
-              icon="book-outline"
+              icon="calendar-outline"
               title="Your diary is empty"
               message="Log a movie to start building your diary."
             />
           ) : (
-            <View className="flex-row flex-wrap gap-3 px-4">
-              {entries.map((entry) => (
-                <Pressable
-                  key={entry.id}
-                  onPress={() => router.push(`/movie/${entry.movieId}`)}
-                  style={{ width: 88 }}>
-                  <View className="h-32 w-full overflow-hidden rounded-sm bg-surface-light-soft dark:bg-base-soft">
-                    {posterUrl(entry.posterPath, 'w185') ? (
-                      <Image
-                        source={{ uri: posterUrl(entry.posterPath, 'w185') ?? undefined }}
-                        style={{ width: '100%', height: '100%' }}
-                        contentFit="cover"
-                      />
-                    ) : null}
-                  </View>
-                </Pressable>
-              ))}
-            </View>
+            <DiaryList entries={entries} onPressEntry={(movieId) => router.push(`/movie/${movieId}`)} />
           )
         ) : null}
 

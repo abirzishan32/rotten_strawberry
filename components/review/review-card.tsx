@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { ReviewMetrics } from '@/components/review/review-metrics';
 import { StarRating } from '@/components/review/star-rating';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { MovieLogEntry } from '@/types';
@@ -35,6 +36,7 @@ export function ReviewCard({ entry, authorName }: { entry: MovieLogEntry; author
         {authorName ? (
           <Text className="text-[11px] font-medium text-brand-dim dark:text-brand">@{authorName}</Text>
         ) : null}
+        <ReviewMetrics entry={entry} />
         {entry.reviewText ? (
           revealed ? (
             <Text className="text-xs leading-4 text-inkLight-muted dark:text-ink-muted" numberOfLines={4}>

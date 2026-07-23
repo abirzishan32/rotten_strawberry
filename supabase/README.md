@@ -7,9 +7,11 @@ generated code here — it's the SQL you run once in your Supabase project.
 
 1. **Run the schema.** Open your project → **SQL Editor** → **New query**,
    paste the entire contents of [`schema.sql`](./schema.sql), and click **Run**.
-   This creates the `profiles`, `reviews`, `favorites`, and `watchlist` tables,
-   turns on Row Level Security, and adds the signup trigger that auto-creates a
-   profile for every new user. It's safe to re-run.
+   This creates the `profiles`, `reviews`, `favorites`, `watchlist`, and
+   `favorite_films` tables, turns on Row Level Security, and adds the signup
+   trigger that auto-creates a profile for every new user. It's safe to re-run —
+   **re-run it after pulling new features** (it uses `add column if not exists`
+   / `create table if not exists`, so it migrates an existing database in place).
 
 2. **Turn off email confirmation** (you chose "instant login"):
    **Authentication → Sign In / Providers → Email** → toggle **Confirm email**

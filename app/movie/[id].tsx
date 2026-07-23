@@ -223,6 +223,48 @@ export default function MovieDetailsScreen() {
           </View>
         ) : null}
 
+        <View className="flex-row gap-3 px-4 pt-3">
+          <Pressable
+            onPress={onToggleWatchlist}
+            className={[
+              'flex-1 flex-row items-center justify-center gap-2 rounded-md py-3.5',
+              inWatchlist ? 'bg-brand/15' : 'bg-surface-light-soft dark:bg-base-soft',
+            ].join(' ')}>
+            <Ionicons
+              name={inWatchlist ? 'bookmark' : 'bookmark-outline'}
+              size={17}
+              color={inWatchlist ? colors.tint : colors.textMuted}
+            />
+            <Text
+              className={[
+                'text-sm font-semibold',
+                inWatchlist ? 'text-brand-dim dark:text-brand' : 'text-inkLight dark:text-ink',
+              ].join(' ')}>
+              {inWatchlist ? 'In watchlist' : 'Add to watchlist'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={onToggleFavorite}
+            className={[
+              'flex-1 flex-row items-center justify-center gap-2 rounded-md py-3.5',
+              isFavorite ? 'bg-[#ff8000]/15' : 'bg-surface-light-soft dark:bg-base-soft',
+            ].join(' ')}>
+            <Ionicons
+              name={isFavorite ? 'heart' : 'heart-outline'}
+              size={17}
+              color={isFavorite ? '#ff8000' : colors.textMuted}
+            />
+            <Text
+              className={[
+                'text-sm font-semibold',
+                isFavorite ? 'text-[#ff8000]' : 'text-inkLight dark:text-ink',
+              ].join(' ')}>
+              {isFavorite ? 'Favourited' : 'Add to favourites'}
+            </Text>
+          </Pressable>
+        </View>
+
         {movie.overview ? (
           <View className="gap-2 px-4 pt-6">
             <Text className="text-base font-bold text-inkLight dark:text-ink">Overview</Text>

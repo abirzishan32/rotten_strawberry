@@ -56,6 +56,14 @@ export default function RootLayout() {
                   name="auth"
                   options={{ presentation: 'modal', headerShown: false }}
                 />
+                <Stack.Screen
+                  name="edit-profile"
+                  options={{ presentation: 'modal', headerShown: false }}
+                />
+                <Stack.Screen
+                  name="pick-favorite-film"
+                  options={{ presentation: 'modal', headerShown: false }}
+                />
               </Stack>
             </ErrorBoundary>
             <StatusBar style={isDark ? 'light' : 'dark'} />

@@ -14,9 +14,12 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 interface MovieCardProps {
   movie: TmdbMovieSummary;
   width?: number;
+  /** Override the default tap behaviour (navigate to the movie detail). Used by
+   *  pickers (add-log, favourite films) that select the movie instead. */
+  onPress?: () => void;
 }
 
-export function MovieCard({ movie, width = 128 }: MovieCardProps) {
+export function MovieCard({ movie, width = 128, onPress }: MovieCardProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const height = width * 1.5;
@@ -26,7 +29,7 @@ export function MovieCard({ movie, width = 128 }: MovieCardProps) {
       style={[{ width }, animatedStyle]}
       onPressIn={() => (scale.value = withTiming(0.95, { duration: 100 }))}
       onPressOut={() => (scale.value = withTiming(1, { duration: 100 }))}
-      onPress={() => router.push(`/movie/${movie.id}`)}
+      onPress={onPress ?? (() => router.push(`/movie/${movie.id}`))}
       accessibilityRole="button"
       accessibilityLabel={movie.title}>
       <View style={{ height }} className="overflow-hidden rounded-md bg-surface-light-soft dark:bg-base-soft">
