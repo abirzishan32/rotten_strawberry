@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -58,9 +59,14 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}>
         <View style={{ paddingTop: insets.top + 12 }} className="flex-row items-center justify-between px-4 pb-2">
           <Text className="text-2xl font-extrabold text-inkLight dark:text-ink">Profile</Text>
-          <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
-            <Ionicons name="settings-outline" size={22} color={colors.text} />
-          </Pressable>
+          <View className="flex-row items-center gap-4">
+            <Pressable onPress={() => router.push('/map')} hitSlop={8}>
+              <Ionicons name="earth-outline" size={22} color={colors.text} />
+            </Pressable>
+            <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
+              <Ionicons name="settings-outline" size={22} color={colors.text} />
+            </Pressable>
+          </View>
         </View>
 
         <View className="items-center gap-3 px-4 pt-3">
@@ -113,6 +119,26 @@ export default function ProfileScreen() {
           <StatCell label="Reviews" value={String(stats.totalReviews)} />
           <StatCell label="Avg rating" value={stats.averageRating ? stats.averageRating.toFixed(1) : '—'} />
         </View>
+
+        {/* Cinematic Atlas entry */}
+        <Pressable onPress={() => router.push('/map')} className="mx-4 mt-4 overflow-hidden rounded-xl">
+          <LinearGradient
+            colors={['#0A1024', '#123a24']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ padding: 16 }}>
+            <View className="flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-brand/20">
+                <Ionicons name="earth" size={24} color="#00e054" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-extrabold text-white">Your Cinematic Atlas</Text>
+                <Text className="text-xs text-white/60">See your world of cinema light up on the globe</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#00e054" />
+            </View>
+          </LinearGradient>
+        </Pressable>
 
         {stats.topGenres.length > 0 ? (
           <View className="gap-2.5 px-4 pt-6">

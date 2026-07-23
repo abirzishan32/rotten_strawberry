@@ -42,6 +42,7 @@ export default function RootLayout() {
               <Stack>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="movie/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="map" options={{ headerShown: false }} />
                 <Stack.Screen name="browse/[category]" options={{ headerShown: false }} />
                 <Stack.Screen name="browse/genre/[id]" options={{ headerShown: false }} />
                 <Stack.Screen
