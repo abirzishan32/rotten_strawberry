@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { AnimatedCounter } from './animated-counter';
@@ -15,6 +15,7 @@ interface CountryStatsCardProps {
   flag?: string;
   accent?: string;
   delay?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -28,11 +29,12 @@ export function CountryStatsCard({
   flag,
   accent = '#00e054',
   delay = 0,
+  style,
 }: CountryStatsCardProps) {
   return (
     <Animated.View
       entering={FadeInDown.delay(delay).duration(650).springify().damping(16)}
-      style={styles.card}>
+      style={[styles.card, style]}>
       <BlurView intensity={36} tint="dark" style={StyleSheet.absoluteFill} />
       <LinearGradient
         colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.02)']}
@@ -63,7 +65,6 @@ export function CountryStatsCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: 158,
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,

@@ -95,41 +95,54 @@ export default function MovieMapScreen() {
               topIso={stats.topCountry?.iso}
               onSelectCountry={setSelectedIso}
             />
-
-            {/* floating stat cards */}
-            <View className="absolute bottom-2 left-0 right-0">
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 12, paddingHorizontal: 16 }}>
-                <CountryStatsCard icon="earth" label="Countries Explored" value={stats.totalCountries} delay={150} />
-                <CountryStatsCard icon="film" label="Movies Watched" value={stats.totalMovies} delay={250} />
-                <CountryStatsCard
-                  icon="trophy"
-                  label="Most Explored"
-                  value={stats.topCountry?.name ?? '—'}
-                  flag={stats.topCountry?.flag}
-                  accent="#FFC53D"
-                  delay={350}
-                />
-                <CountryStatsCard
-                  icon="flame"
-                  label="Current Favorite"
-                  value={stats.currentFavorite?.name ?? '—'}
-                  flag={stats.currentFavorite?.flag}
-                  accent="#FF5A5F"
-                  delay={450}
-                />
-              </ScrollView>
-            </View>
           </View>
 
           {/* scrollable sections */}
           <ScrollView
             className="flex-1"
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingTop: 18, paddingBottom: insets.bottom + 40 }}>
-            <Animated.View entering={FadeIn.duration(600)}>
+            contentContainerStyle={{ paddingTop: 16, paddingBottom: insets.bottom + 40 }}>
+            {/* 2x2 stat grid */}
+            <View className="gap-3 px-4">
+              <View className="flex-row gap-3">
+                <CountryStatsCard
+                  style={{ flex: 1 }}
+                  icon="earth"
+                  label="Countries Explored"
+                  value={stats.totalCountries}
+                  delay={120}
+                />
+                <CountryStatsCard
+                  style={{ flex: 1 }}
+                  icon="film"
+                  label="Movies Watched"
+                  value={stats.totalMovies}
+                  delay={200}
+                />
+              </View>
+              <View className="flex-row gap-3">
+                <CountryStatsCard
+                  style={{ flex: 1 }}
+                  icon="trophy"
+                  label="Most Explored"
+                  value={stats.topCountry?.name ?? '—'}
+                  flag={stats.topCountry?.flag}
+                  accent="#FFC53D"
+                  delay={280}
+                />
+                <CountryStatsCard
+                  style={{ flex: 1 }}
+                  icon="flame"
+                  label="Current Favorite"
+                  value={stats.currentFavorite?.name ?? '—'}
+                  flag={stats.currentFavorite?.flag}
+                  accent="#FF5A5F"
+                  delay={360}
+                />
+              </View>
+            </View>
+
+            <Animated.View entering={FadeIn.duration(600)} className="pt-8">
               <SectionHeader
                 overline="Exploration"
                 title={`${stats.explorationPercentage}% of the world explored`}
