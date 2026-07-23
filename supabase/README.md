@@ -17,6 +17,12 @@ generated code here — it's the SQL you run once in your Supabase project.
    **Authentication → Sign In / Providers → Email** → toggle **Confirm email**
    *off* → Save. New sign-ups are then logged in immediately.
 
+2b. **Set up avatar storage.** Run [`storage.sql`](./storage.sql) in the SQL
+   Editor. It creates a public `avatars` bucket and Row Level Security so users
+   can only write to their own folder. (You can also create the bucket by hand in
+   **Storage → New bucket → name `avatars`, Public**, but running the SQL also
+   adds the write policies.)
+
 3. **Check the client keys** in the project's `.env` (already filled in):
    - `SUPABASE_URL` — `https://lkksfyaaouzdkgsriuel.supabase.co`
    - `SUPABASE_ANON_KEY` — the **anon/public** key (safe to ship; RLS protects data)

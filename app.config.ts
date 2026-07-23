@@ -41,6 +41,13 @@ const config: ExpoConfig = {
       },
     ],
     '@react-native-community/datetimepicker',
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'Allow $(PRODUCT_NAME) to access your photos so you can set a profile picture.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

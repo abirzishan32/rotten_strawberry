@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -70,8 +71,16 @@ export default function ProfileScreen() {
         </View>
 
         <View className="items-center gap-3 px-4 pt-3">
-          <View className="h-24 w-24 items-center justify-center rounded-full bg-brand/15">
-            <Ionicons name="person" size={40} color={colors.tint} />
+          <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-brand/15">
+            {profile?.avatar_url ? (
+              <Image
+                source={{ uri: profile.avatar_url }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+              />
+            ) : (
+              <Ionicons name="person" size={40} color={colors.tint} />
+            )}
           </View>
           <View className="items-center gap-0.5">
             <Text className="text-lg font-bold text-inkLight dark:text-ink">{displayName}</Text>

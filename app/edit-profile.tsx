@@ -1,13 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Input } from '@/components/common';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useProfile, useUpdateProfile } from '@/hooks/queries';
-import { getSupabaseErrorMessage } from '@/services/supabase';
+import { getSupabaseErrorMessage, storageApi } from '@/services/supabase';
+import { useUserId } from '@/store/auth-store';
 
 const MAX_BIO_WORDS = 200;
 
@@ -19,12 +32,15 @@ const countWords = (text: string) => {
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
+  const userId = useUserId();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
 
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [location, setLocation] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   // Prefill once the profile loads.
@@ -33,13 +49,51 @@ export default function EditProfileScreen() {
       setDisplayName(profile.display_name ?? '');
       setBio(profile.bio ?? '');
       setLocation(profile.location ?? '');
+      setAvatarUrl(profile.avatar_url ?? null);
       setHydrated(true);
     }
   }, [profile, hydrated]);
 
   const bioWords = countWords(bio);
   const bioTooLong = bioWords > MAX_BIO_WORDS;
-  const canSave = !updateProfile.isPending && !bioTooLong;
+  const canSave = !updateProfile.isPending && !uploadingAvatar && !bioTooLong;
+
+  const handlePickAvatar = async () => {
+    if (!userId || uploadingAvatar) return;
+
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Permission needed', 'Allow photo access to set a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1], // square crop → clean circular avatar
+      quality: 0.7,
+      base64: true,
+    });
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    if (!asset?.base64) {
+      Alert.alert('Something went wrong', "Couldn't read the selected image.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const url = await storageApi.uploadAvatar(userId, asset.base64);
+      setAvatarUrl(url);
+      // Persist the new avatar immediately (independent of the other fields).
+      updateProfile.mutate({ avatar_url: url });
+    } catch (error) {
+      Alert.alert("Couldn't upload photo", getSupabaseErrorMessage(error));
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleSave = () => {
     if (!canSave) return;
@@ -78,6 +132,32 @@ export default function EditProfileScreen() {
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: insets.bottom + 32 }}>
+          {/* avatar */}
+          <View className="items-center gap-2 pb-1">
+            <Pressable onPress={handlePickAvatar} disabled={uploadingAvatar} className="relative">
+              <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-brand/15">
+                {avatarUrl ? (
+                  <Image source={{ uri: avatarUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                ) : (
+                  <Ionicons name="person" size={40} color={colors.tint} />
+                )}
+                {uploadingAvatar ? (
+                  <View className="absolute inset-0 items-center justify-center bg-black/45">
+                    <ActivityIndicator color="#fff" />
+                  </View>
+                ) : null}
+              </View>
+              <View className="absolute bottom-0 right-0 h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-brand dark:border-base">
+                <Ionicons name="camera" size={14} color="#000" />
+              </View>
+            </Pressable>
+            <Pressable onPress={handlePickAvatar} disabled={uploadingAvatar} hitSlop={6}>
+              <Text className="text-sm font-semibold text-brand-dim dark:text-brand">
+                {uploadingAvatar ? 'Uploading…' : 'Change photo'}
+              </Text>
+            </Pressable>
+          </View>
+
           <Input
             label="Display name"
             value={displayName}

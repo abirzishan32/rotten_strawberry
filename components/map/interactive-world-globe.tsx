@@ -13,13 +13,7 @@ interface InteractiveWorldGlobeProps {
 }
 
 /**
- * A real 3D globe with actual country borders. Rendered by `globe.gl` (Three.js)
- * inside a WebView: countries are extruded + choropleth-coloured by watch count,
- * the user drags to rotate and pinches to zoom, and tapping a country posts its
- * ISO code back to React Native to open the detail sheet.
- *
- * globe.gl + the Natural Earth boundaries are loaded from CDNs at runtime (the
- * app already needs the network for TMDB), so nothing large is bundled.
+ * A real 3D globe with actual country borders
  */
 export function InteractiveWorldGlobe({
   countries,
